@@ -11,7 +11,7 @@
 }
 
 .button, input[type="submit"].button {
-  @extend .radius;
+  @extend .radius !optional;
 }
 
 .code-sample {
