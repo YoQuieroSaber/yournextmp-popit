@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.dispatch import receiver
 from django.core.urlresolvers import reverse
@@ -48,6 +49,15 @@ class CachedCount(models.Model):
 
         cls.objects.filter(**filters).update(count=models.F('count') + 1)
 
+    @classmethod
+    def get_attention_needed_queryset(cls):
+        # FIXME: this should probably be a queryset method instead.
+        current_election_slugs = [t[0] for t in settings.ELECTIONS_CURRENT]
+        return cls.objects.filter(
+            count_type='post',
+            election__in=current_election_slugs
+        ).order_by('count', '?')
+
 
 @receiver(person_added, sender=PopItPerson)
 def person_added_handler(sender, **kwargs):
@@ -62,7 +72,7 @@ def person_added_handler(sender, **kwargs):
     for election, standing_in_data in data['standing_in'].items():
         if standing_in_data:
             post_id = standing_in_data.get('post_id')
-            CachedCount.increment_count(election, 'constituency', post_id)
+            CachedCount.increment_count(election, 'post', post_id)
 
     # party
     for election, party_membership_data in data['party_memberships'].items():
