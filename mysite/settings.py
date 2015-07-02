@@ -85,6 +85,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
     "mysite.context_processors.election_date",
     "mysite.context_processors.add_group_permissions",
     "mysite.context_processors.add_notification_data",
+    "mysite.context_processors.locale",
 )
 
 ELECTION_APP = conf['ELECTION_APP']
@@ -212,7 +213,21 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale')
 ]
 
+# The code below sets LANGUAGES to only those we have translations
+# for, so at the time of writing that will be:
+#   [('en', 'English'), ('es-ar', 'Argentinian Spanish')]
+# whereas the default setting is a long list of languages which
+# includes:
+#   ('es', 'Spanish').
+# If someone's browser sends 'Accept-Language: es', that means that it
+# will be found in this list, but since there are no translations for 'es'
+# it'll fall back to LANGUAGE_CODE.  However, if there is no 'es' in
+# LANGUAGES, then Django will attempt to do a best match, so if
+# Accept-Language is 'es' then it will use the 'es-ar' translation.  We think
+# this is generally desirable (e.g. so someone can see YourNextMP in Spanish
+# if their browser asks for Spanish).
 LANGUAGES = [l for l in LANGUAGES if os.path.exists(os.path.join(LOCALE_PATHS[0], to_locale(l[0])))]
+
 LANGUAGE_CODE = conf.get('LANGUAGE_CODE', 'en-gb')
 
 TIME_ZONE = conf.get('TIME_ZONE', 'Europe/London')
@@ -244,6 +259,12 @@ if 'test' not in sys.argv:
 
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'mysite/static'),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
 )
 
 PIPELINE_CSS = {
@@ -411,7 +432,7 @@ if len(KNOWN_MAPIT_GENERATIONS) > 1:
 MAPIT_CURRENT_GENERATION = list(KNOWN_MAPIT_GENERATIONS)[0]
 
 MAPIT_TYPES_GENERATIONS_ELECTIONS = {
-    (mapit_type, t[1]['mapit_generation']): t[1]
+    (mapit_type, t[1]['mapit_generation']): t
     for t in ELECTIONS_CURRENT
     for mapit_type in t[1]['mapit_types']
 }

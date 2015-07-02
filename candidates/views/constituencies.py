@@ -114,6 +114,10 @@ class ConstituencyDetailView(ElectionMixin, PopItApiMixin, TemplateView):
             c.get_elected(self.election) is not None for c in context['candidates']
         )
 
+        context['show_confirm_result'] = any(
+            c.get_elected(self.election) is None for c in context['candidates']
+        )
+
         context['add_candidate_form'] = NewPersonForm(
             election=self.election,
             initial={'constituency': post_id}
@@ -260,7 +264,8 @@ class ConstituencyRecordWinnerView(ElectionMixin, GroupRequiredMixin, PopItApiMi
         winner = self.person
         people_for_invalidation = set()
         for membership in self.post_data.get('memberships', []):
-            if membership.get('role') != 'Candidate':
+            candidate_role = self.election_data['candidate_membership_role']
+            if membership.get('role') != candidate_role:
                 continue
             if not membership_covers_date(
                     membership,
@@ -317,7 +322,7 @@ class ConstituencyRetractWinnerView(ElectionMixin, GroupRequiredMixin, PopItApiM
         constituency_name = get_post_label_from_post_id(post_id)
         post = get_post_cached(self.api, post_id)['result']
         for membership in post.get('memberships', []):
-            if membership.get('role') != 'Candidate':
+            if membership.get('role') != self.election_data['candidate_membership_role']:
                 continue
             if not membership_covers_date(
                     membership,

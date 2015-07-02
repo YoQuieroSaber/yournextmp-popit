@@ -2,7 +2,9 @@
 
 import re
 
-from .election_specific import MAPIT_DATA, PARTY_DATA
+from .cache import get_post_cached, get_all_posts_cached, UnknownPostException
+from .popit import create_popit_api_object
+from .election_specific import MAPIT_DATA, PARTY_DATA, AREA_POST_DATA
 from .models.address import check_address
 
 from django import forms
@@ -75,7 +77,7 @@ class BasePersonForm(forms.Form):
         required=False,
     )
     gender = forms.CharField(
-        label=_("Gender (e.g. “male”, “female”)"),
+        label=_(u"Gender (e.g. “male”, “female”)"),
         max_length=256,
         required=False,
     )
@@ -94,7 +96,7 @@ class BasePersonForm(forms.Form):
         required=False,
     )
     twitter_username = forms.CharField(
-        label=_("Twitter username (e.g. “democlub”)"),
+        label=_(u"Twitter username (e.g. “democlub”)"),
         max_length=256,
         required=False,
     )
@@ -135,7 +137,8 @@ class BasePersonForm(forms.Form):
     def check_party_and_constituency_are_selected(self, cleaned_data):
         '''This is called by the clean method of subclasses'''
 
-        for election, election_data in settings.ELECTIONS_CURRENT:
+        for election, election_data in self.elections_with_fields:
+            election_name = election_data['name']
 
             standing_status = cleaned_data.get(
                 'standing_' + election, 'standing'
@@ -148,22 +151,18 @@ class BasePersonForm(forms.Form):
             # since the party field that should be checked depends on the
             # selected constituency.
             constituency = cleaned_data['constituency_' + election]
-            try:
-                mapit_area = MAPIT_DATA.areas_by_id[('WMC', 22)][constituency]
-            except KeyError:
+            party_set = AREA_POST_DATA.post_id_to_party_set(constituency)
+            if not party_set:
                 message = _("If you mark the candidate as standing in the "
                             "{election}, you must select a constituency")
                 raise forms.ValidationError(
-                    message.format(election=election_data['name'])
+                    message.format(election=election_name)
                 )
-            if mapit_area['country_name'] == 'Northern Ireland':
-                party_field = 'party_ni_' + election
-            else:
-                party_field = 'party_gb_' + election
+            party_field = 'party_' + party_set + '_' + election
             party_id = cleaned_data[party_field]
             if party_id not in PARTY_DATA.party_id_to_name:
-                message = _("You must specify a party for the 2015 election")
-                raise forms.ValidationError(message)
+                message = _("You must specify a party for the {election}")
+                raise forms.ValidationError(message.format(election=election_name))
         return cleaned_data
 
 
@@ -177,6 +176,11 @@ class NewPersonForm(BasePersonForm):
             raise Exception, _("Unknown election: '{election}'").format(election=election)
 
         election_data = settings.ELECTIONS[election]
+
+        self.elections_with_fields = [
+            (election, election_data)
+        ]
+
         self.fields['constituency_' + election] = \
             forms.CharField(
                 label=("Constituency in " + election_data['name']),
@@ -234,11 +238,19 @@ class UpdatePersonForm(BasePersonForm):
     def __init__(self, *args, **kwargs):
         super(UpdatePersonForm, self).__init__(*args, **kwargs)
 
+        # We should only need to actually go to the API for the first
+        # time this form is loaded; it'll be cached indefinitely after
+        # that, but still need the API object for the first time.
+        api = create_popit_api_object()
+
+        self.elections_with_fields = settings.ELECTIONS_CURRENT
+
         # The fields on this form depends on how many elections are
         # going on at the same time. (FIXME: this might be better done
         # with formsets?)
 
-        for election, election_data in settings.ELECTIONS_CURRENT:
+        for election, election_data in self.elections_with_fields:
+            role = election_data['for_post_role']
             self.fields['standing_' + election] = \
                 forms.ChoiceField(
                     label=_('Standing in %s') % election_data['name'],
@@ -251,9 +263,12 @@ class UpdatePersonForm(BasePersonForm):
                     required=False,
                     choices=[('', '')] + sorted(
                         [
-                            (mapit_id, constituency['name'])
-                            for mapit_id, constituency
-                            in MAPIT_DATA.areas_by_id[('WMC', 22)].items()
+                            (post['id'],
+                             AREA_POST_DATA.shorten_post_label(
+                                 election,
+                                 post['label']
+                             ))
+                            for post in get_all_posts_cached(api, role)
                         ],
                         key=lambda t: t[1]
                     ),
@@ -327,7 +342,11 @@ class ToggleLockForm(forms.Form):
 
     def clean_post_id(self):
         post_id = self.cleaned_data['post_id']
-        if post_id not in MAPIT_DATA.areas_by_id[('WMC', 22)]:
+        # Use get_post_cached to check if this is a real post:
+        try:
+            api = create_popit_api_object()
+            get_post_cached(api, post_id)
+        except UnknownPostException:
             message = _('{0} was not a known post ID')
             raise ValidationError(message.format(post_id))
         return post_id
