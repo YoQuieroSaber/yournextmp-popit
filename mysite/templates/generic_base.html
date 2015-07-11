@@ -81,7 +81,7 @@
       {% if messages %}
         <div class="messages">
           {% for message in messages %}
-            {% if 'photo-review' in message.tags %}
+            {% if 'photo-review' in message.tags or 'do-something-else' in message.tags %}
               <p class="message {% if message.tags %}{{ message.tags }}{% endif %}">
                 {% if 'safe' in message.tags %}
                   {{ message|safe }}
@@ -103,7 +103,7 @@
       <div class="footer__links">
         <p><a href="{% url 'help-api' %}">{% trans "Open data API" %}</a>
             &middot; <a href="{% url 'help-about' %}">{% trans "About" %}</a>
-            &middot; <a href="https://github.com/mysociety/yournextmp-popit/issues">{% trans "Issue tracker" %}</a>
+            &middot; <a href="https://github.com/mysociety/yournextrepresentative/issues">{% trans "Issue tracker" %}</a>
             &middot; <a href="{% url 'help-privacy' %}">{% trans "Privacy policy" %}</a></p>
       </div>
       <div class="footer__bylines">

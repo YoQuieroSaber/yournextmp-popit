@@ -2,21 +2,19 @@
 
 The idea of this project is to make a web-based front-end to
 [PopIt](http://popit.poplus.org/) for crowd-sourcing candidates
-who are standing in the next UK general election in 2015.
-
-This is pretty functional now - we're testing with small numbers
-of users at the moment, but will make it more widely available
-soon.
+for upcoming elections; it was used for
+[YourNextMP](https://yournextmp.com) in the UK for the 2015
+General Election.
 
 ## Known Bugs
 
 You can find a list of known issues to work on here:
 
-* https://github.com/mysociety/yournextmp-popit/issues
+* https://github.com/mysociety/yournextrepresentative/issues
 
 These are prioritized in Huboard:
 
-* https://huboard.com/mysociety/yournextmp-popit
+* https://huboard.com/mysociety/yournextrepresentative
 
 ## Getting a development version running:
 
@@ -26,13 +24,13 @@ Make a new directory called `yournextmp`, change into that directory and clone t
 
 Copy the example Vagrantfile to the root of your new directory:
 
-    cp yournextmp-popit/Vagrantfile-example ./Vagrantfile
+    cp yournextrepresentative/Vagrantfile-example ./Vagrantfile
 
 Copy the example configuration file to `conf/general.yml`:
 
-    cp yournextmp-popit/conf/general.yml-example yournextmp-popit/conf/general.yml
+    cp yournextrepresentative/conf/general.yml-example yournextrepresentative/conf/general.yml
 
-Edit `yournextmp-popit/conf/general.yml` to fill in details of
+Edit `yournextrepresentative/conf/general.yml` to fill in details of
 the PopIt instance you're using.
 
 Start that vagrant box with:
@@ -45,7 +43,7 @@ Log in to the box with:
 
 Move to the app directory
 
-    cd yournextmp-popit
+    cd yournextrepresentative
 
 Add a superuser account:
 
@@ -75,14 +73,14 @@ stage.
 After logging in again, the only steps you should need to run
 the development server again are:
 
-    cd yournextmp-popit
+    cd yournextrepresentative
     ./manage.py runserver 0.0.0.0:8000
 
 ### Running the tests
 
 SSH into the vagrant machine, then run:
 
-    cd yournextmp-popit
+    cd yournextrepresentative
     ./manage.py test
 
 ### Mirror the live database into your development copy
@@ -97,7 +95,7 @@ Assuming you have a local development instance of PopIt, change
 into the root of the PopIt repository, and run:
 
      NODE_ENV=development bin/replace-database \
-         "$DUMP_DIRECTORY"/yournextmp-popit- \
+         "$DUMP_DIRECTORY"/yournextrepresentative- \
          candidates \
          popitdev__master
 

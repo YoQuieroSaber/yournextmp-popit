@@ -272,7 +272,6 @@ PIPELINE_CSS = {
         'source_filenames': (
             'moderation_queue/css/jquery.Jcrop.css',
             'moderation_queue/css/crop.scss',
-            'moderation_queue/css/photo-upload.scss',
         ),
         'output_filename': 'css/image-review.css',
     },
@@ -290,6 +289,7 @@ PIPELINE_CSS = {
             'jquery/jquery-ui.css',
             'jquery/jquery-ui.structure.css',
             'jquery/jquery-ui.theme.css',
+            'moderation_queue/css/photo-upload.scss',
         ),
         'output_filename': 'css/all.css',
     }
@@ -407,12 +407,6 @@ ELECTION_RE += '|'.join(
 ELECTION_RE += ')'
 
 ELECTIONS_CURRENT = [t for t in ELECTIONS_BY_DATE if t[1].get('current')]
-
-# FIXME: we should never really need "an arbitrary current election";
-# this is just here for the moment because we don't have a page for
-# "all elections for this point" yet (i.e. area pages) - places where
-# this is used in the code are effectively FIXMEs too.
-ARBITRARY_CURRENT_ELECTION = ELECTIONS_CURRENT[-1] if ELECTIONS_CURRENT else None
 
 # Make sure there's a trailing slash at the end of base MapIt URL:
 MAPIT_BASE_URL = re.sub(r'/*$', '/', elections_module.MAPIT_BASE_URL)

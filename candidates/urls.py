@@ -49,6 +49,11 @@ patterns_to_format = [
         'name': 'retract-winner'
     },
     {
+        'pattern': r'^election/{election}/post/invalidate$',
+        'view': views.InvalidatePostView.as_view(),
+        'name': 'post-cache-invalidate'
+    },
+    {
         'pattern': r'^election/{election}/post/{post}/(?P<ignored_slug>.*).csv$',
         'view': views.ConstituencyDetailCSVView.as_view(),
         'name': 'constituency_csv'
@@ -114,6 +119,11 @@ patterns_to_format = [
         'name': 'areas-view',
     },
     {
+        'pattern': r'^areas-of-type/(?P<mapit_type>.*?)(?:/(?P<ignored_slug>.*))?$',
+        'view': views.AreasOfTypeView.as_view(),
+        'name': 'areas-of-type-view',
+    },
+    {
         'pattern': r'^election/{election}/party/(?P<organization_id>[a-z-]+:[-\d]+)/(?P<ignored_slug>.*)$',
         'view': views.PartyDetailView.as_view(),
         'name': 'party'
@@ -167,11 +177,6 @@ patterns_to_format = [
         'pattern': r'^person/invalidate$',
         'view': views.InvalidatePersonView.as_view(),
         'name': 'person-cache-invalidate'
-    },
-    {
-        'pattern': r'^constituency/invalidate$',
-        'view': views.InvalidatePostView.as_view(),
-        'name': 'constituency-cache-invalidate'
     },
 ]
 

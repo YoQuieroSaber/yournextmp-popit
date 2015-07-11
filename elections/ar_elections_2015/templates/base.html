@@ -12,7 +12,7 @@
 
     {% load staticfiles %}
     <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}"/>
-    <link rel="apple-touch-icon" href="{% static 'img/apple-touch-icon.png' %}"/>
+    <link rel="apple-touch-icon-precomposed" href="{% static 'img/apple-touch-icon.png' %}"/>
 
     {% load pipeline %}
     {% stylesheet 'all' %}
@@ -56,7 +56,7 @@
         <div class="header__nav__primary">
           <a href="{% url 'help-about' %}" class="header__nav__item">{% trans "About" %}</a>
           <a href="{% url 'posts' %}" class="header__nav__item">{% trans "Posts" %}</a>
-          <a href="#" class="header__nav__item">{% trans "Provinces" %}</a>
+          <a href="{% url 'areas-of-type-view' mapit_type='PRV' ignored_slug='provincia' %}" class="header__nav__item">{% trans "Provinces" %}</a>
           <a href="{% url 'reports_home' %}" class="header__nav__item">{% trans "Numbers" %}</a>
           {% if user_can_review_photos and photos_for_review > 0 %}
             <a href="{% url 'photo-review-list' %}" class="header__nav__item header__nav__notification">{{ photos_for_review }}</a>
@@ -78,11 +78,15 @@
             <a href="https://twitter.com/YQS_Argentina">Twitter</a>
         </div>
       </div>
-      <div class="header__hero">
-        {% block hero %}
-        {% endblock %}
-      </div>
     </div>
+    {% block hero_outer %}
+      <div class="header__hero">
+        <div class="container">
+          {% block hero %}
+          {% endblock %}
+        </div>
+      </div>
+    {% endblock %}
   </div>
   <div class="content">
     <div class="container">
@@ -90,14 +94,14 @@
       {% if messages %}
         <div class="messages">
           {% for message in messages %}
-            {% if 'photo-review' in message.tags %}
-              <p class="message {% if message.tags %}{{ message.tags }}{% endif %}">
+            {% if 'photo-review' in message.tags or 'do-something-else' in message.tags %}
+              <div class="message {% if message.tags %}{{ message.tags }}{% endif %}">
                 {% if 'safe' in message.tags %}
                   {{ message|safe }}
                 {% else %}
                   {{ message }}
                 {% endif %}
-              </p>
+              </div>
             {% endif %}
           {% endfor %}
         </div>
@@ -115,14 +119,34 @@
             &middot; <a href="{% url 'help-privacy' %}">{% trans "Privacy policy" %}</a></p>
       </div>
       <div class="footer__bylines">
-        <p>{% blocktrans trimmed %}
-          Supported by <a href="#">Blah blah</a>,
-          <a href="#">Blah</a>, and
-          <a href="#">Blah blah</a>.
-          {% endblocktrans %}</p>
-        <p>{% blocktrans trimmed %}
-          Built by <a href="#">Congreso Interactivo</a>.
-          {% endblocktrans %}
+        <h4>{% trans 'Made by' %}</h4>
+        <p>
+          <a href="http://www.congresointeractivo.org"><img src="/static/candidates/img/logo-congreso-interactivo.png" width="107" height="40" alt="Congreso Interactivo"></a>
+          <a href="http://ar.okfn.org"><img src="/static/candidates/img/logo-okf-argentina.png" width="172" height="40" alt="Open Knowledge Argentina"></a>
+          <a href="http://twitter.com/dataconcepcion"><img src="/static/candidates/img/logo-datos-concepcion.png" width="35" height="40" alt="Datos Concepción"></a>
+          <a href="http://www.directoriolegislativo.org/"><img src="/static/candidates/img/logo-directorio-legislativo.png" width="130" height="40" alt="Directorio Legislativo"></a>
+        </p>
+        <h4>{% trans 'Partners' %}</h4>
+        <p>
+          <a href="http://www.taringa.com">Taringa</a> &middot;
+          <a href="http://www.acij.org.ar">ACIJ</a> &middot;
+          <a href="http://www.conciencia.org">Asociación Conciencia</a> &middot;
+          <a href="http://www.we-me.org">We-Me</a>
+        </p>
+        <h4>{% trans 'Supported by' %}</h4>
+        <p>
+          <a href="http://hackslabs.org/">HacksLabs</a> &middot;
+          <a href="http://www.worldbank.org/">World Bank</a> &middot;
+          <a href="http://www.icfj.org/">ICFJ</a>
+        </p>
+        <h4>{% trans 'Developed by' %}</h4>
+        <p>
+          <a href="https://mysociety.org">mySociety</a> &middot;
+          <a href="http://www.ciudadanointeligente.org">Ciudadano Inteligente</a> &middot;
+          <a href="http://www.clinica-web.com.ar">Clínica Web</a>
+        </p>
+        <p>
+          <a href="{% url 'help-about' %}">{% trans 'Show all the collaborators and volunteers' %}</a>
         </p>
       </div>
     </div>
