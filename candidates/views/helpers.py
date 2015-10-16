@@ -104,8 +104,9 @@ def group_people_by_party(election, people, party_list=True, max_people=None):
         else:
             party_data = person.last_party
         position = None
-        if election_data['party_lists_in_use']:
-            position = person.standing_in[election].get('party_list_position')
+        standing_in_election = person.standing_in.get(election)
+        if standing_in_election and election_data['party_lists_in_use']:
+            position = standing_in_election.get('party_list_position')
         party_id = party_data['id']
         party_id_to_name[party_id] = party_data['name']
         party_id_to_people[party_id].append((position, person))
@@ -113,8 +114,8 @@ def group_people_by_party(election, people, party_list=True, max_people=None):
         if election_data['party_lists_in_use']:
             # sort by party list position
             people_list.sort(key=lambda p: ( p[0] is None, p[0] ))
-            """ only return the configured maximum number of people
--           for a party list """
+            # only return the configured maximum number of people
+            # for a party list
             if max_people and len(people_list) > max_people:
                 party_truncated[party_id] = len(people_list)
                 del people_list[max_people:]
