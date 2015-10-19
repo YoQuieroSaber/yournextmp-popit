@@ -4,7 +4,6 @@ from urlparse import urlunsplit
 import requests
 
 from django.conf import settings
-from django.utils.http import urlquote
 
 from popit_api import PopIt
 
@@ -34,6 +33,9 @@ def generic_unwrap_pagination(get_json_response):
         json_response = get_json_response(pagination_kwargs)
         keep_fetching = json_response.get('has_more', False)
         page += 1
+        if 'result' not in json_response:
+            message = "No 'result' attribute found in: {json_response}"
+            raise Exception(message.format(json_response=json_response))
         for api_object in json_response['result']:
             yield api_object
 
@@ -53,9 +55,12 @@ def unwrap_search_pagination(collection, query, **kwargs):
         return r.json()
     return generic_unwrap_pagination(get_json_response)
 
-def get_all_posts(role, **kwargs):
+def get_all_posts(election, role, **kwargs):
     kwargs.setdefault('embed', '')
-    return unwrap_search_pagination('posts', 'role:"' + role + '"', **kwargs)
+    search_query = u'elections:"{election}" AND role:"{role}"'.format(
+        election=election, role=role
+    )
+    return unwrap_search_pagination('posts', search_query, **kwargs)
 
 def merge_popit_dicts(primary, secondary):
     result = {}
@@ -118,7 +123,7 @@ def get_search_url(collection, query, **kwargs):
     }
     parameters.update(kwargs)
     query_string = '&'.join(
-        k + '=' + urlquote(v) for k, v in parameters.items()
+        u"{0}={1}".format(k, v) for k, v in parameters.items()
     )
     return base_search_url + collection + '?' + query_string
 
