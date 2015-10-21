@@ -36,9 +36,9 @@ def get_party_people_for_election_from_memberships(
     for membership in memberships:
         if not membership.get('role') == election_data['candidate_membership_role']:
             continue
+        person = PopItPerson.create_from_dict(membership['person_id'])
         if not person.party_memberships.get(election):
             continue
-        person = PopItPerson.create_from_dict(membership['person_id'])
         if person.party_memberships[election]['id'] != party_id:
             continue
         position_in_list = membership.get('party_list_position')
